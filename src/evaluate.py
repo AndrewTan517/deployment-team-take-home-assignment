@@ -1,6 +1,7 @@
 import json
 import statistics
 import time
+from typing import Any
 
 import requests
 
@@ -12,12 +13,15 @@ BACKOFF_BASE_S = 1.0
 F1_PASS_THRESHOLD = 0.7  # tune against a hand-checked sample of your own data
 
 
-def load_dataset(dataset_path):
+def load_dataset(dataset_path: str) -> list[dict]:
+    """
+    Loads a dataset from a JSONL file.
+    """
     with open(dataset_path, "r") as file:
         return [json.loads(line) for line in file]
 
 
-def call_with_retries(endpoint, payload):
+def call_with_retries(endpoint: str, payload: dict) -> dict[str, Any]:
     """
     POSTs payload to endpoint, retrying transient failures (timeouts,
     connection errors, 5xx) with exponential backoff. Does not retry
@@ -53,7 +57,7 @@ def call_with_retries(endpoint, payload):
     raise last_exc
 
 
-def run_requests(endpoint, dataset_path):
+def run_requests(endpoint: str, dataset_path: str) -> tuple[dict, list]:
     """
     Runs each test case against the endpoint. Returns (predictions, errors).
     A failure on one case does not stop the run for the rest.
@@ -78,7 +82,10 @@ def run_requests(endpoint, dataset_path):
     return predictions, errors
 
 
-def summarize(dataset_path, predictions, errors):
+def summarize(dataset_path: str, predictions: dict, errors: list) -> dict[str, Any]:
+    """
+    Summarizes the results of a run, including pass/fail counts and F1 scores.
+    """
     scores = compute_score(dataset_path, predictions)
  
     cases_by_id = {c["id"]: c for c in load_dataset(dataset_path)}

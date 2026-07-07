@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -10,7 +12,7 @@ class ChatCompletionsRequest(BaseModel):
 
 
 @app.post("/v1/chat/completions")
-def chat_completions(request: ChatCompletionsRequest):
+def chat_completions(request: ChatCompletionsRequest) -> dict[str, Any]:
     return {
         "id": request.id,
         "object": "chat.completion",
