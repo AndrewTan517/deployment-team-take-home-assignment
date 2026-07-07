@@ -2,7 +2,7 @@
 
 ## Parts A and C
 
-You can find the answers to parts A and C in their respective PDF files in the root directory (`part-a.pdf` and `part-c.pdf`).
+You can find the answers to parts A and C in their respective PDF files in the root directory (`part-a.pdf` and `part-c.pdf`). Additionally, the architecture diagram used in `part-a.pdf` can be found at `images/architecture-diagram.png`.
 
 ## Part B
 
