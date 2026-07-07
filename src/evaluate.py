@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from compute_score import compute_score
+from .compute_score import compute_score
 
 TIMEOUT_S = 10
 MAX_RETRIES = 3
@@ -22,7 +22,7 @@ def call_with_retries(endpoint, payload):
     POSTs payload to endpoint, retrying transient failures (timeouts,
     connection errors, 5xx) with exponential backoff. Does not retry
     4xx client errors, since retrying won't fix a bad request.
-    Returns (parsed_json, latency_seconds).
+    Returns (parsed_json).
     Raises the last exception if all retries are exhausted.
     """
     last_exc = None
@@ -30,11 +30,10 @@ def call_with_retries(endpoint, payload):
         start = time.time()
         try:
             response = requests.post(endpoint, json=payload, timeout=TIMEOUT_S)
-            latency = time.time() - start
             if 400 <= response.status_code < 500:
                 response.raise_for_status()  # client error - don't retry
             response.raise_for_status()      # 5xx - falls into except below, retried
-            return response.json(), latency
+            return response.json()
         except requests.exceptions.HTTPError as e:
             status = e.response.status_code if e.response is not None else None
             last_exc = e
@@ -56,20 +55,18 @@ def call_with_retries(endpoint, payload):
 
 def run_requests(endpoint, dataset_path):
     """
-    Runs each test case against the endpoint. Returns (predictions, errors, latencies).
+    Runs each test case against the endpoint. Returns (predictions, errors).
     A failure on one case does not stop the run for the rest.
     """
     cases = load_dataset(dataset_path)
     predictions = {}
     errors = []
-    latencies = {}
  
     for case in cases:
         try:
-            data, latency = call_with_retries(endpoint, {"id": case["id"], "input": case["input"]})
+            data = call_with_retries(endpoint, {"id": case["id"], "input": case["input"]})
             content = data["choices"][0]["message"]["content"]
             predictions[case["id"]] = content
-            latencies[case["id"]] = latency
         except Exception as e:
             errors.append({
                 "id": case["id"],
@@ -78,7 +75,7 @@ def run_requests(endpoint, dataset_path):
                 "detail": str(e),
             })
  
-    return predictions, errors, latencies
+    return predictions, errors
 
 
 def summarize(dataset_path, predictions, errors):
@@ -118,9 +115,3 @@ def summarize(dataset_path, predictions, errors):
         "failures": failures,
         "errors": errors,
     }
-
-
-if __name__ == "__main__":
-    predictions, errors, latencies = run_requests("http://localhost:8000/v1/chat/completions", "src/test.jsonl")
-    summary = summarize("src/test.jsonl", predictions, errors)
-    print(json.dumps(summary, indent=2))
