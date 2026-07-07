@@ -50,18 +50,32 @@ The endpoint must return an OpenAI-compatible chat completions response. The har
 }
 ```
 
+### Installation and Quick Start
+
+Clone this repository into your local machine:
+
+```bash
+git clone https://github.com/AndrewTan517/deployment-team-take-home-assignment.git
+cd deployment-team-take-home-assignment/
+```
+
+Create/sync your virtual environment (this repository uses `uv`):
+```bash
+uv sync
+```
+
 ### Running the harness
 
 1. Start the endpoint (the bundled example uses `uvicorn`):
 
    ```bash
-   uvicorn src.endpoint:app --reload
+   uv run uvicorn src.endpoint:app --reload
    ```
 
 2. Run the harness:
 
    ```bash
-   python main.py
+   uv run python main.py
    ```
 
    By default `main.py` points at `http://localhost:8000/v1/chat/completions` with `src/test.jsonl` as the dataset. Edit those values directly in `main.py` to target a different endpoint or dataset.
